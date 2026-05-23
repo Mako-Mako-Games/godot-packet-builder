@@ -2,6 +2,7 @@
 #pragma once
 #include <godot_cpp/classes/ref_counted.hpp>
 #include <godot_cpp/variant/packed_byte_array.hpp>
+#include <godot_cpp/classes/ref.hpp>
 
 namespace godot
 {
@@ -18,11 +19,10 @@ namespace godot
         static void _bind_methods();
 
     public:
-        void _init(PackedByteArray bytes);
+        static Ref<BitReader> create(PackedByteArray bytes);
         void reset();
         int bits_remaining() const;
         int64_t read_bits(int count);
-        bool read_bool();
     };
 
 }

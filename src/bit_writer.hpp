@@ -19,7 +19,6 @@ namespace godot
     public:
         void reset();
         void write_bits(int64_t value, int count);
-        void write_bool(bool value);
         PackedByteArray get_bytes() const;
         int get_bit_count() const;
     };

@@ -8,7 +8,6 @@ void BitWriter::_bind_methods()
 {
     ClassDB::bind_method(D_METHOD("reset"), &BitWriter::reset);
     ClassDB::bind_method(D_METHOD("write_bits", "value", "count"), &BitWriter::write_bits);
-    ClassDB::bind_method(D_METHOD("write_bool", "value"), &BitWriter::write_bool);
     ClassDB::bind_method(D_METHOD("get_bytes"), &BitWriter::get_bytes);
     ClassDB::bind_method(D_METHOD("get_bit_count"), &BitWriter::get_bit_count);
 }
@@ -22,7 +21,9 @@ void BitWriter::reset()
 void BitWriter::write_bits(int64_t value, int count)
 {
     ERR_FAIL_COND_MSG(count < 1, "count must be >= 1");
-    ERR_FAIL_COND_MSG(value < 0, "value must be unsigned");
+    ERR_FAIL_COND_MSG(value < 0, "value must be unsigned (>= 0)");
+    ERR_FAIL_COND_MSG(count < 64 && value >= (int64_t(1) << count),
+                      vformat("value %d does not fit in %d bits", value, count));
 
     int remaining = count;
     while (remaining > 0)
@@ -40,11 +41,6 @@ void BitWriter::write_bits(int64_t value, int count)
 
         _bit_count += bits_to_write;
     }
-}
-
-void BitWriter::write_bool(bool value)
-{
-    write_bits(value ? 1 : 0, 1);
 }
 
 PackedByteArray BitWriter::get_bytes() const
