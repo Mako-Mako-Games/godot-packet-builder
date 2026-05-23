@@ -1,0 +1,3 @@
+[libraries]
+windows.debug.x86_64 = "res://addons/packet-builder/bin/libpacket_builder.windows.debug.x86_64.dll"
+windows.release.x86_64 = "res://addons/packet-builder/bin/libpacket_builder.windows.release.x86_64.dll"
