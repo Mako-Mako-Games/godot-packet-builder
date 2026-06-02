@@ -9,6 +9,7 @@ add_subdirectory(godot-cpp)
 
 add_library(packet_builder SHARED
     src/register_types.cpp
+    src/packet_schema.cpp
     src/bit_writer.cpp
     src/bit_reader.cpp
 )

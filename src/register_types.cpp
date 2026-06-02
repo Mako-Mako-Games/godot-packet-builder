@@ -1,7 +1,7 @@
-// src/register_types.cpp
 #include "register_types.hpp"
 #include "bit_writer.hpp"
 #include "bit_reader.hpp"
+#include "packet_schema.hpp"
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
@@ -14,6 +14,7 @@ void initialize_packet_builder(ModuleInitializationLevel p_level)
         return;
     ClassDB::register_class<BitWriter>();
     ClassDB::register_class<BitReader>();
+    ClassDB::register_class<PacketSchema>();
 }
 
 void uninitialize_packet_builder(ModuleInitializationLevel p_level)
