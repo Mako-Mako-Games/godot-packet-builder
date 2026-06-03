@@ -17,6 +17,7 @@ namespace godot
         static void _bind_methods() {}
 
     public:
+
         // Maximum number of bits this encoder can write in a single encode call.
         // Used by PacketBuilder to pre-size the output buffer.
         virtual int max_bits() const = 0;
@@ -28,7 +29,7 @@ namespace godot
         virtual Variant decode_value(const PackedByteArray &bytes, int &bit_pos) const = 0;
 
         // Write value only if changed since last call. Sets changed_out accordingly.
-        // Still responsible for updating internal prev state.
+        // Still responsible for updating internal prev state (is_changed + write + commit in one go).
         virtual void encode_delta(const Variant &value, PackedByteArray &bytes, int &bit_pos, bool &changed_out) = 0;
 
         // Reset internal delta state (call when a peer reconnects).
