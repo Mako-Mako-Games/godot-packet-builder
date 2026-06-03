@@ -1,7 +1,14 @@
 #include "register_types.hpp"
 #include "bit_writer.hpp"
 #include "bit_reader.hpp"
-#include "packet_schema.hpp"
+#include "field_encoder.hpp"
+#include "packet_builder.hpp"
+#include "encoders/int_encoder.hpp"
+#include "encoders/bool_encoder.hpp"
+#include "encoders/float_encoder.hpp"
+#include "encoders/vector3_encoder.hpp"
+#include "encoders/transform_encoder.hpp"
+#include "encoders/string_encoder.hpp"
 #include <gdextension_interface.h>
 #include <godot_cpp/core/defs.hpp>
 #include <godot_cpp/godot.hpp>
@@ -14,7 +21,14 @@ void initialize_packet_builder(ModuleInitializationLevel p_level)
         return;
     ClassDB::register_class<BitWriter>();
     ClassDB::register_class<BitReader>();
-    ClassDB::register_class<PacketSchema>();
+    ClassDB::register_abstract_class<FieldEncoder>();
+    ClassDB::register_class<PacketBuilder>();
+    ClassDB::register_class<IntEncoder>();
+    ClassDB::register_class<BoolEncoder>();
+    ClassDB::register_class<FloatEncoder>();
+    ClassDB::register_class<Vector3Encoder>();
+    ClassDB::register_class<TransformEncoder>();
+    ClassDB::register_class<StringEncoder>();
 }
 
 void uninitialize_packet_builder(ModuleInitializationLevel p_level)

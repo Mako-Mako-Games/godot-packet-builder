@@ -9,12 +9,19 @@ add_subdirectory(godot-cpp)
 
 add_library(packet_builder SHARED
     src/register_types.cpp
-    src/packet_schema.cpp
+    src/field_encoder.cpp
+    src/packet_builder.cpp
+    src/encoders/int_encoder.cpp
+    src/encoders/bool_encoder.cpp
+    src/encoders/float_encoder.cpp
+    src/encoders/vector3_encoder.cpp
+    src/encoders/transform_encoder.cpp
+    src/encoders/string_encoder.cpp
     src/bit_writer.cpp
     src/bit_reader.cpp
 )
 
-target_include_directories(packet_builder PRIVATE src/)
+target_include_directories(packet_builder PRIVATE src/ src/encoders/)
 target_link_libraries(packet_builder godot-cpp)
 
 # Platform/arch suffix matching Godot's naming convention
