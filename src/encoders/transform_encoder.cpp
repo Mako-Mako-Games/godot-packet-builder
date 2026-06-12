@@ -228,8 +228,29 @@ void TransformEncoder::encode_delta(const Variant &value, PackedByteArray &bytes
 
     if (changed_out)
     {
-        _encode_position(t.origin, bytes, bit_pos);
-        _encode_rotation(t.basis.get_rotation_quaternion(), bytes, bit_pos);
+        // Write position directly from pre-computed raw values
+        int cb = _pos_component_bits();
+        bit_write(bytes, bit_pos, pos_r[0], cb);
+        bit_write(bytes, bit_pos, pos_r[1], cb);
+        bit_write(bytes, bit_pos, pos_r[2], cb);
+
+        // Write rotation directly from pre-computed raw values
+        if (!quantize)
+        {
+            // Raw: write all 4 components as-is (32 bits each)
+            bit_write(bytes, bit_pos, rot_r[0], 32);
+            bit_write(bytes, bit_pos, rot_r[1], 32);
+            bit_write(bytes, bit_pos, rot_r[2], 32);
+            bit_write(bytes, bit_pos, rot_r[3], 32);
+        }
+        else
+        {
+            // Quantized smallest-3: rot_r is [header, comp1, comp2, comp3]
+            bit_write(bytes, bit_pos, rot_r[0], 3);  // 2 bits drop_idx + 1 bit sign
+            bit_write(bytes, bit_pos, rot_r[1], rot_bits);
+            bit_write(bytes, bit_pos, rot_r[2], rot_bits);
+            bit_write(bytes, bit_pos, rot_r[3], rot_bits);
+        }
     }
 
     for (int i = 0; i < 3; i++)
