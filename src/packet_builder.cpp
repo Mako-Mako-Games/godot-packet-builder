@@ -163,9 +163,12 @@ static Vector3 read_pos(const BakedField &f, const PackedByteArray &bytes, int &
         uint32_t u = static_cast<uint32_t>(raw);
         float v; std::memcpy(&v, &u, sizeof(v)); return v;
     };
-    return Vector3(from_raw(bit_read(bytes, bit_pos, cb)),
-                   from_raw(bit_read(bytes, bit_pos, cb)),
-                   from_raw(bit_read(bytes, bit_pos, cb)));
+    // Reads must be sequenced explicitly — C++ does not guarantee evaluation
+    // order of function arguments, and bit_read advances bit_pos each call.
+    float x = from_raw(bit_read(bytes, bit_pos, cb));
+    float y = from_raw(bit_read(bytes, bit_pos, cb));
+    float z = from_raw(bit_read(bytes, bit_pos, cb));
+    return Vector3(x, y, z);
 }
 
 static void get_rot_raws(const BakedField &f, const Quaternion &q, int64_t out[4])
@@ -225,7 +228,6 @@ static Quaternion read_rot(const BakedField &f, const PackedByteArray &bytes, in
         }
         return Quaternion(comps[0], comps[1], comps[2], comps[3]);
     }
-
     int64_t hdr   = bit_read(bytes, bit_pos, 3);
     int drop_idx  = static_cast<int>(hdr >> 1);
     int sign      = static_cast<int>(hdr & 1);
@@ -334,10 +336,10 @@ Variant PacketBuilder::_decode_vector3(BakedField &field,
     const PackedByteArray &bytes, int &bit_pos) const
 {
     int cb = field.vector3_quantize ? field.vector3_bits : 32;
-    return Variant(Vector3(
-        vec3_from_raw(field, bit_read(bytes, bit_pos, cb)),
-        vec3_from_raw(field, bit_read(bytes, bit_pos, cb)),
-        vec3_from_raw(field, bit_read(bytes, bit_pos, cb))));
+    float x = vec3_from_raw(field, bit_read(bytes, bit_pos, cb));
+    float y = vec3_from_raw(field, bit_read(bytes, bit_pos, cb));
+    float z = vec3_from_raw(field, bit_read(bytes, bit_pos, cb));
+    return Variant(Vector3(x, y, z));
 }
 
 // ── Float ────────────────────────────────────────────────────────────────────
