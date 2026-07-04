@@ -1,84 +1,41 @@
-name: Build & Release
+name: Create Release
 
-# Build on every push/PR (sanity check), and cut a GitHub Release
-# whenever a tag like "v1.2.3" is pushed.
 on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Tag to release (e.g. v1.2.3). Leave blank to use the pushed tag."
+        required: false
   push:
-    branches: [ "main" ]
     tags: [ "v*" ]
-  pull_request:
-    branches: [ "main" ]
-  workflow_dispatch: {}
 
 env:
   ADDON_NAME: packet-builder
 
 jobs:
   build:
-    name: ${{ matrix.platform }}-${{ matrix.target }}
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        # GDExtensions on Godot 4 generally need both a debug and a release
-        # template binary per platform. Add "editor" here too if you ship
-        # an editor-only build.
-        target: [ template_debug, template_release ]
-        # "platform" is a real matrix axis so it cross-multiplies with
-        # "target" (giving 3 platforms x 2 targets = 6 jobs). The include
-        # block below only attaches the matching "os" to each platform
-        # value -- since "platform" already exists as a key, GitHub merges
-        # these in rather than creating brand-new combinations.
-        platform: [ linux, windows, macos ]
-        include:
-          - platform: linux
-            os: ubuntu-22.04
-          - platform: windows
-            os: windows-latest
-          - platform: macos
-            os: macos-latest
+    # Runs the entire build.yml matrix as a single job in this workflow's run.
+    uses: ./.github/workflows/build.yml
 
-    steps:
-      - name: Checkout (with godot-cpp submodule)
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: "3.x"
-
-      - name: Install SCons
-        run: python -m pip install scons
-
-      # Needed on Windows so SCons picks up the MSVC toolchain.
-      - name: Set up MSVC dev environment
-        if: matrix.platform == 'windows'
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Build
-        run: >
-          scons platform=${{ matrix.platform }} target=${{ matrix.target }}
-          -j$(nproc 2>/dev/null || sysctl -n hw.ncpu 2>/dev/null || echo 2)
-        shell: bash
-
-      - name: Upload build artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: bin-${{ matrix.platform }}-${{ matrix.target }}
-          path: build/addons/${{ env.ADDON_NAME }}/bin/${{ matrix.platform }}
-          if-no-files-found: error
-
-  release:
-    name: Package release
+  package:
+    name: Package & publish
     needs: build
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
     steps:
+      - name: Resolve tag
+        id: tag
+        run: |
+          if [ -n "${{ github.event.inputs.tag }}" ]; then
+            echo "value=${{ github.event.inputs.tag }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=${GITHUB_REF_NAME}" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Checkout
         uses: actions/checkout@v4
-        # We only need the addon/ template here, not godot-cpp, so no submodules.
+        with:
+          ref: ${{ steps.tag.outputs.value }}
+        # No submodules needed here, only the addon/ template.
 
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
@@ -91,27 +48,24 @@ jobs:
           set -euo pipefail
           OUT="dist/addons/${{ env.ADDON_NAME }}"
           mkdir -p "$OUT/bin"
-
-          # Copy the addon template 1:1 (gdextension file, plugin.cfg, scripts, etc.)
           cp -r addon/. "$OUT/"
-
-          # Merge all per-platform/per-target binaries into $OUT/bin/<platform>/
           for d in artifacts/bin-*; do
-            base="$(basename "$d")"          # e.g. bin-linux-template_debug
+            base="$(basename "$d")"
             platform="$(echo "$base" | cut -d- -f2)"
             mkdir -p "$OUT/bin/${platform}"
             cp -r "$d"/* "$OUT/bin/${platform}/"
           done
-
           ls -R "$OUT"
 
       - name: Zip addon
         run: |
           cd dist
-          zip -r "../${{ env.ADDON_NAME }}-${{ github.ref_name }}.zip" addons
+          zip -r "../${{ env.ADDON_NAME }}-${{ steps.tag.outputs.value }}.zip" addons
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (draft)
         uses: softprops/action-gh-release@v2
         with:
-          files: ${{ env.ADDON_NAME }}-${{ github.ref_name }}.zip
+          tag_name: ${{ steps.tag.outputs.value }}
+          draft: true
+          files: ${{ env.ADDON_NAME }}-${{ steps.tag.outputs.value }}.zip
           generate_release_notes: true
