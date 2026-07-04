@@ -20,14 +20,23 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        # GDExtensions on Godot 4 generally need both a debug and a release
+        # template binary per platform. Add "editor" here too if you ship
+        # an editor-only build.
         target: [ template_debug, template_release ]
+        # "platform" is a real matrix axis so it cross-multiplies with
+        # "target" (giving 3 platforms x 2 targets = 6 jobs). The include
+        # block below only attaches the matching "os" to each platform
+        # value -- since "platform" already exists as a key, GitHub merges
+        # these in rather than creating brand-new combinations.
+        platform: [ linux, windows, macos ]
         include:
-          - os: ubuntu-22.04
-            platform: linux
-          - os: windows-latest
-            platform: windows
-          - os: macos-latest
-            platform: macos
+          - platform: linux
+            os: ubuntu-22.04
+          - platform: windows
+            os: windows-latest
+          - platform: macos
+            os: macos-latest
 
     steps:
       - name: Checkout (with godot-cpp submodule)
