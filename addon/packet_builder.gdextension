@@ -3,9 +3,11 @@ entry_symbol = "packet_builder_init"
 compatibility_minimum = "4.3"
 
 [libraries]
-windows.debug.x86_64 = "bin/windows/libpacket_builder.windows.debug.x86_64.dll"
-windows.release.x86_64 = "bin/windows/libpacket_builder.windows.release.x86_64.dll"
-linux.debug.x86_64 = "bin/linux/libpacket_builder.linux.template_debug.x86_64.so"
-linux.release.x86_64 = "bin/linux/libpacket_builder.linux.template_release.x86_64.so"
-macos.debug.x86_64 = "bin/macos/libpacket_builder.macos.template_debug.universal.dylib"
-macos.release.x86_64 = "bin/macos/libpacket_builder.macos.template_release.universal.dylib"
+windows.debug.x86_64   = "bin/windows/packet_builder.windows.template_debug.x86_64.dll"
+windows.release.x86_64 = "bin/windows/packet_builder.windows.template_release.x86_64.dll"
+
+linux.debug.x86_64     = "bin/linux/libpacket_builder.linux.template_debug.x86_64.so"
+linux.release.x86_64   = "bin/linux/libpacket_builder.linux.template_release.x86_64.so"
+
+macos.debug            = "bin/macos/libpacket_builder.macos.template_debug.universal.dylib"
+macos.release          = "bin/macos/libpacket_builder.macos.template_release.universal.dylib"
